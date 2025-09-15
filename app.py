@@ -1,43 +1,49 @@
+
+ 
 import streamlit as st
-import pandas as pd
 import numpy as np
 import pickle
 
-# Load trained model
-model = pickle.load(open("model.pkl", "rb"))
-
-st.title("🚗 Car Price Prediction App")
-
-# Inputs from user
-year = st.number_input("Year of Manufacture", min_value=1990, max_value=2025, step=1)
-present_price = st.number_input("Present Price (Rs)", min_value=0.0, step=0.1)
-kms_driven = st.number_input("Kilometers Driven", min_value=0, step=100)
-owner = st.number_input("Number of Previous Owners", min_value=0, step=1)
-car_age = st.number_input("Car Age (years)", min_value=0, step=1)
-
-fuel_type = st.radio("Fuel Type", ("CNG", "Diesel", "Petrol"))
-transmission = st.radio("Transmission", ("Automatic", "Manual"))
-
-# Convert categorical inputs into model format
-fuel_cng, fuel_diesel, fuel_petrol = 0, 0, 0
-if fuel_type == "CNG":
-    fuel_cng = 1
-elif fuel_type == "Diesel":
-    fuel_diesel = 1
+ 
+# Load trained linear regression model
+model = pickle.load(open('lr_model.pkl', 'rb'))
+# Streamlit UI
+st.set_page_config(page_title="Used Car Price Predictor", layout="centered")
+ 
+st.title("🚗 Used Car Price Prediction")
+st.markdown("Enter the details of the car below to predict its price.")
+ 
+# Input fields
+kms = st.number_input("Kilometers Driven", min_value=0, max_value=300000, step=1000)
+age = st.number_input("Age of the Car (in years)", min_value=0, max_value=25, step=1)
+oprice = st.number_input("Original Price (Rs.)", min_value=500000, max_value=5000000, step=10000)
+ 
+fuel_type = st.selectbox("Fuel Type", ["CNG", "Diesel", "Petrol","Other"])
+transmission = st.radio("Transmission", ["Manual", "Automatic"])
+ 
+#condition
+if fuel_type == 'Petrol':
+    fuel = [0.0, 0.0, 1.0]
+elif fuel_type == 'Diesel':
+    fuel = [0.0, 1.0, 0.0]
+elif fuel_type == 'CNG':
+    fuel = [1.0, 0.0, 0.0]
 else:
-    fuel_petrol = 1
-
-trans_auto, trans_manual = 0, 0
-if transmission == "Automatic":
-    trans_auto = 1
+    fuel = [0.0, 0.0, 0.0]  # in case of "Other"
+ 
+if transmission == 'Automatic':
+    transmission_vals = [1.0, 0.0]
 else:
-    trans_manual = 1
+    transmission_vals = [0.0, 1.0]
 
-# Prediction button
-if st.button("Predict Price"):
-    features = np.array([[year, present_price, kms_driven, owner, car_age,
-                          fuel_cng, fuel_diesel, fuel_petrol,
-                          trans_auto, trans_manual]])
-    
-    prediction = model.predict(features)[0]
-    st.success(f"Predicted Selling Price: ₹{prediction:,.2f}")
+
+
+# Prediction
+if st.button("🔮 Predict Price"):
+    data = np.array([[oprice, kms, age, 
+                  fuel[0], fuel[1], fuel[2], 
+                  transmission_vals[0], transmission_vals[1]]])
+
+    result = np.round(model.predict(data))
+    st.success(f"Predicted Car Price: ₹ {result[0]:,.0f}")
+ 

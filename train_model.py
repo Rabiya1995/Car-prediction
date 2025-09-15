@@ -1,21 +1,16 @@
-import pandas as pd
-from sklearn.model_selection import train_test_split
+import  pandas as pd  
+df = pd.read_csv('car_cleaned_data.csv')
+df.head()
+df.columns
+X=df[['Present_Price', 'Kms_Driven',
+       'Car_Age', 'Fuel_Type_CNG', 'Fuel_Type_Diesel',
+       'Fuel_Type_Petrol', 'Transmission_Automatic', 'Transmission_Manual']]
+y=df['Selling_Price']
+# Fitting Simple Linear Regression to the Training set
 from sklearn.linear_model import LinearRegression
-import pickle
-
-# Load dataset
-df = pd.read_csv("car_cleaned_data.csv")
-
-# Example: Suppose 'Price' is the target variable
-X = df.drop("Selling_Price", axis=1)
-y = df["Selling_Price"]
-
-# Split data
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# Train model
 model = LinearRegression()
-model.fit(X_train, y_train)
+model.fit(X, y) 
 
-# Save model to file
-pickle.dump(model, open("model.pkl", "wb"))
+import pickle
+with open('lr_model.pkl', 'wb') as model_file:
+    pickle.dump(model, model_file)
